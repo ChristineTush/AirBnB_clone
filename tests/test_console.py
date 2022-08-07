@@ -1,133 +1,192 @@
 #!/usr/bin/python3
-"""Test Console Module"""
-
-from console import HBNBCommand
-from models.engine.file_storage import FileStorage
+"""
+Tests for HBNBCommand Class
+"""
+import os
+import pep8
+import console
 import unittest
 from io import StringIO
-import sys
-import datetime
 from unittest.mock import patch
-import re
-import os
+from console import HBNBCommand
 
 
-class Test_CommanConsole(unittest.TestCase):
-    """Test Console Module (console.py)"""
+class TestHBNBCommand(unittest.TestCase):
+    """
+    Test for HBNBCommand Class
+    """
 
-    def do_quit(self, line):
-        """Quit command to exit the HBNB console"""
-        print("Thank you for using The Console")
-        return True
-
-    def do_EOF(self, line):
-        """Quit command to exit the program at end of file"""
-        print()
-        return True
-
-    def emptyline(self):
-        """Ingnore empty line"""
-        pass
-
-    def do_create(self, line):
+    @classmethod
+    def setUpClass(cls):
         """
-        Creates a new instance of BaseModel, saves it
-        (to the JSON file) and prints the id.
+        Set HBNBCommand Class
         """
-        if not line:
-            print("** class name missing **")
-        elif line in class_check:
-            _input = line.split()
-            new_obj = class_check[_input[0]]()
-            new_obj.save()
-            storage.reload()
-            print(new_obj.id)
-        else:
-            print("** class doesn't exist **")
+        cls.cli = HBNBCommand()
 
-    def do_show(self, line):
+    @classmethod
+    def teardown(cls):
         """
-        Prints the string representation of an instance
-        based on the class name and id
+        Delete HBNBCommand Class
         """
-        if line == "" or line is None:
-            print("** class name missing **")
-        else:
-            _input = line.split(' ')
-            if _input[0] not in class_check:
-                print("** class doesn't exist **")
-            elif len(_input) < 2:
-                print("** instance id missing **")
-            else:
-                key = "{}.{}".format(_input[0], _input[1])
-                if key not in storage.all():
-                    print("** no instance found **")
-                else:
-                    print(storage.all()[key])
+        del cls.cli
+        try:
+            os.remove("file.json")
+        except Exception:
+            pass
 
-    def do_destroy(self, line):
+    def test_pep8_Console(self):
         """
-        Deletes an instance based on the class name and id
-        (save the change into the JSON file)
+        Check pep8
         """
-        if line == "" or line is None:
-            print("** class name missing **")
-        else:
-            _input = line.split(' ')
-            if _input[0] not in class_check():
-                print("** class doesn't exist **")
-            elif len(_input) < 2:
-                print("** instance id missing **")
-            else:
-                key = "{}.{}".format(_input[0], _input[1])
-                if key not in storage.all():
-                    print("** no instance found **")
-                else:
-                    del storage.all()[key]
-                    storage.save()
+        psg = pep8.StyleGuide(quiet=True)
+        model = "console.py"
+        tests = "tests/test_console.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def do_all(self, usr_in):
-        """Prints all instances based on a class name"""
-        if name:
-            if name in class_check:
-                for key, value in (storage.all()).items():
-                    if name in key:
-                        print(value)
-            else:
-                print("** class doesn't exist **")
-        else:
-            for value in storage.all().values():
-                print(value)
-
-    def do_update(self, line):
+    def test_documentation(self):
         """
-        Updates an instance based on the class name and id
-        by adding or updating attribute(save the change into the JSON file)
+        Check documentation
         """
-        inpu = line.split()
-        if line == "" or line is None:
-            print("** class name missing **")
-        elif inpu[0] in self.class_list:
-            if len(inpu) < 2:
-                print("**instance id missing**")
-            elif len(inpu) < 3:
-                print("**attribute name missing**")
-            elif len(inpu) < 4:
-                print("**value missing**")
-            else:
-                key = "{}.{}".format(inpu[0], inpu[1])
-                if key in storage.all():
-                    if type(inpu[3]) is dict:
-                        storage.all()[key].setattr(inpu[2], inpu[3])
-                    objs[key].__setattr__(inpu[2], inpu[3])
-                    objs[key].save()
-                else:
-                    print("**no instance found**")
-        else:
-            print("**class doesn't exist**")
+        self.assertIsNotNone(HBNBCommand.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_EOF.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
+        self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_create.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_show.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_all.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_update.__doc__)
+        self.assertIsNotNone(HBNBCommand.count.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_BaseModel.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_User.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_State.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_City.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Amenity.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Place.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Review.__doc__)
 
+    def test_init(self):
+        """
+        Check objects as instance of HBNBCommand
+        """
+        self.assertTrue(isinstance(self.cli, HBNBCommand))
 
-if __name__ == '__main__':
-    class_check = {"Amenity", "BaseModel", "City" "Place", "Review",
-                   "State", "User"}
-    HBNBCommand().cmdloop()
+    def test_quit(self):
+        """
+        Check quit command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("quit")
+            self.assertEqual('', output.getvalue())
+
+    def test_emptyline(self):
+        """
+        Check empty line
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("\n")
+            self.assertEqual('', output.getvalue())
+
+    def test_create(self):
+        """
+        Check create command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create City")
+            self.assertTrue(len(output.getvalue()) > 20)
+
+    def test_show(self):
+        """
+        Check show command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show City 37731-pqrs")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+    def test_destroy(self):
+        """
+        Check destroy command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy City 37731-pqrs")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+    def test_all(self):
+        """
+        Check all command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("all Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("all City")
+            self.assertTrue("[" in output.getvalue())
+            self.assertTrue("]\n" in output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("City.all()")
+            self.assertTrue("[" in output.getvalue())
+            self.assertTrue("]\n" in output.getvalue())
+
+    def test_update(self):
+        """
+        Check update command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update Guaco")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update City 37731-pqrs")
+            self.assertEqual
+            ("** attribute name missing **\n", output.getvalue())
+
+    def test_count(self):
+        """
+        Check count command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("count")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Guaco.count()")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Review.count")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Amenity.count()")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+if __name__ == "__main__":
+    unittest.main()
