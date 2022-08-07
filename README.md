@@ -47,4 +47,4 @@ This allows the storage to be reloaded automatically at initialization, which re
 
 # AUTHOR
 - Faith Apacha Nasambu | apacha336@gmail.com | [GitHub](https://github.com/Apacha123)
-- Rhomeinel Nelson | christinemuthoka12@gmail.com | [GitHub](https://github.com/ChristineTush)
+- Christine Muthoka | christinemuthoka12@gmail.com | [GitHub](https://github.com/ChristineTush)
